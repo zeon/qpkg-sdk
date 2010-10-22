@@ -1,0 +1,34 @@
+#!/bin/sh
+
+QPKG_DIR=""
+
+find_base(){
+	QPKG_BASE=""
+	# Determine BASE installation location according to smb.conf	
+	publicdir=`/sbin/getcfg Public path -f /etc/config/smb.conf`
+	if [ ! -z $publicdir ] && [ -d $publicdir ];then
+		publicdirp1=`/bin/echo $publicdir | /bin/cut -d "/" -f 2`
+		publicdirp2=`/bin/echo $publicdir | /bin/cut -d "/" -f 3`
+		publicdirp3=`/bin/echo $publicdir | /bin/cut -d "/" -f 4`
+		if [ ! -z $publicdirp1 ] && [ ! -z $publicdirp2 ] && [ ! -z $publicdirp3 ]; then
+			[ -d "/${publicdirp1}/${publicdirp2}/Public" ] && QPKG_BASE="/${publicdirp1}/${publicdirp2}"
+		fi
+	fi
+	
+	# Determine BASE installation location by checking where the Public folder is.
+	if [ -z $QPKG_BASE ]; then
+		for datadirtest in /share/HDA_DATA /share/HDB_DATA /share/HDC_DATA /share/HDD_DATA /share/HDE_DATA /share/HDF_DATA /share/HDG_DATA /share/HDH_DATA /share/MD0_DATA /share/MD1_DATA /share/MD2_DATA /share/MD3_DATA; do
+			[ -d $datadirtest/Public ] && QPKG_BASE="/${publicdirp1}/${publicdirp2}"
+		done
+	fi
+	if [ -z $QPKG_BASE ] ; then
+		echo "The Public share not found."
+		_exit 1
+	fi
+	QPKG_DIR="${QPKG_BASE}/.qpkg/Hello_QNAP"
+}
+
+find_base
+source ${QPKG_DIR}/hello_qnap.conf
+
+print_hello_qnap
